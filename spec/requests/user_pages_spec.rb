@@ -12,6 +12,13 @@ describe "User pages" do
     it { should have_title(user.name) }
   end
 
+  describe "signup page" do
+      before { visit signup_path }
+
+      it { should have_content('Sign up') }
+      it { should have_title(full_title('Sign up')) }
+  end
+
   describe "signup" do
 
     before { visit signup_path }
@@ -22,7 +29,26 @@ describe "User pages" do
       it "should not create a user" do
         expect { click_button submit }.not_to change(User, :count)
       end
+
+      before do
+        fill_in "Name",         with: ""
+        fill_in "Email",        with: "user@ex"
+        fill_in "Password",     with: "foo"
+        fill_in "Confirmation", with: ""
+      end
+
+      describe "after submission" do
+        before { click_button submit }
+
+        it { should have_title('Sign up') }
+        it { should have_content('error') }
+        it { should have_content('Password confirmation doesn\'t match Password') }
+        it { should have_content('Password confirmation can\'t be blank') }
+        it { should have_content('Name can\'t be blank') }
+        it { should have_content('Email is invalid') }
+        it { should have_content('Password is too short') }
     end
+  end
 
     describe "with valid information" do
       before do
@@ -34,6 +60,26 @@ describe "User pages" do
 
       it "should create a user" do
         expect { click_button submit }.to change(User, :count).by(1)
+      end
+
+      describe "after submission" do
+        before { click_button submit }
+
+        it { should_not have_title('Sign up') }
+        it { should_not have_content('error') }
+        it { should_not have_content('Password confirmation doesn\'t match Password') }
+        it { should_not have_content('Password confirmation can\'t be blank') }
+        it { should_not have_content('Name can\'t be blank') }
+        it { should_not have_content('Email is invalid') }
+        it { should_not have_content('Password is too short') }
+      end
+
+    describe "after saving the user" do
+        before { click_button submit }
+        let(:user) { User.find_by(email: 'user@example.com') }
+
+        it { should have_title(user.name) }
+        it { should have_selector('div.alert.alert-success', text: 'Welcome') }
       end
     end
   end
